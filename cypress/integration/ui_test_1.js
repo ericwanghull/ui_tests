@@ -1,34 +1,5 @@
 // / <reference types="Cypress" />
 
-// describe('My First Test', function() {
-//   it('Does not do much!', function() {
-//     expect(true).to.equal(true)
-//   })
-// })
-
-// describe('My Second Test', function() {
-//   it('Does too much!', function() {
-//     expect(true).to.equal(false)
-//   })
-// })
-
-// describe('My Third Test', function() {
-//   it('Visits the Kitchen Sink', function() {
-//     cy.visit('https://example.cypress.io')
-
-//     cy.contains('type').click()
-
-//     // Should be on a new URL which includes '/commands/actions'
-//     cy.url().should('include', '/commands/actions')
-
-//     // Get an input, type into it and verify that the value has been updated
-//     cy.get('.action-email')
-//       .type('fake@email.com')
-//       .should('have.value', 'fake@email.com')
-//   })
-// })
-
-
 /*
 Cypress works like jquery for accessing DOMs, but rather than saving them into
 a variable, the query remains open for a set timeout period, and subsequent commands
@@ -40,33 +11,36 @@ Steps to writing a good test:
 2. Take an action.
 3. Make an assertion about the resulting application state.
 Or in the Given, When, Then syntax
+
+Each test chunk (starting with "describe") is run sequentially, but independently, i.e. any failure in the first
+chunk will not stop the next chunk from running. Individual tests (starting with "it") within a chunk, however,
+are skipped if any preceding tests within that chunk fail.
 */
 
 //head to hull dashboard and sign in
 describe("Get to Dashboard", function() {
     it('Visit Hull and Sign in', function() {
         cy.visit("https://dashboard.hullapp.io/")
-        cy.contains('Sign in with Google').click() //assume login has been saved on browser
-        cy.wait(7000)
-        cy.url().should('include', '/overview', { timeout: 30000 }) //check url for successful signin
+        cy.contains('Sign in with Google').click() //assume google login has been saved on browser
+        cy.wait(7000) //account for slow connection
+        cy.url().should('include', '/overview', { timeout: 10000 }) //check url for successful signin
     })
 })
 
 //switch orgs for testing
 describe("Get to Testing Environment", function() {
     it('Open Available Orgs', function() {
-        //no hover function, check for popover
-        cy.get('.avatar-container').click() //click open org panel
-        cy.get('.ant-popover-inner-content') //check that the popover exists
+        //cypress has no hover function
+        cy.get('.avatar-container').click() //click open org panel by clicking avatar
+        cy.get('.ant-popover-inner-content') //check that the popover element appears
 
-        //should check for second popover
         cy.get('.ant-select-selection-selected-value').click() //open orgs list
-        // cy.get('ant-select-selection.ant-select-selection--single')
-          // .its('aria-expanded').should('have.value', 'true')
+        // cy.get('ant-select-selection.ant-select-selection--single') //confirm popover appears
+          // .its('aria-expanded').should('have.value', 'true') //does not work
 
         //type to search
         cy.get('input.ant-select-search__field')
-          .type('Eric Wang Organization', { delay: 100 }) //delay
+          .type('Eric Wang Organization', { delay: 100 }) //slow typing
           .should('have.value', 'Eric Wang Organization') //confirm text shows up
     })
 
@@ -78,84 +52,83 @@ describe("Get to Testing Environment", function() {
     })
 })
 
+//install Segment connector
 describe("Add a Connector", function() {
     it('Go to Gallery', function() {
-        // cy.get('ul.ant-menu ant-menu-light ant-menu-root ant-menu-horizontal')
-        // cy.get("li.ant-select-dropdown-menu-item")
+        //go to Connectors tab
         cy.get('li.ant-menu-item')
           .contains('Connectors').click()
-        cy.url().should('include', '/5bfe0994/connectors')
+        cy.url().should('include', '/5bfe0994/connectors') //check for the right page
 
-        //add
+        //click Add a connector
         cy.contains('Add a connector').click()
-        cy.url().should('include', '/5bfe0994/gallery')
+        cy.url().should('include', '/5bfe0994/gallery') //check for the right page
     })
 
     it('Install Segment', function() {
-        //search
+        //search for Segment
         cy.get('input.ant-input').first()
-          // .its('placeholder').should('have.value', 'Search')
-          .type('Segment', { delay: 100 })
-        cy.get('h3', { timeout: 30000 }).contains('Segment').click()
-
+          // .its('placeholder').should('have.value', 'Search') //does not work
+          .type('Segment', { delay: 100 }) //slow typing
+        cy.get('h3', { timeout: 10000 }).contains('Segment').click()
+        //add check for segment
 
         //scroll and install
-        cy.get('.ant-modal-body').scrollTo('bottom') //how to test
-        cy.get('.ant-btn.ant-btn-primary.ant-btn-lg').click({ timeout: 30000})
-        cy.wait(7000)
-        cy.url().should('include', '5bfe0994/ships', { timeout: 30000})
-        cy.url().should('include', 'installed=true', { timeout: 30000})
+        cy.get('.ant-modal-body').scrollTo('bottom')
+        cy.get('.ant-btn.ant-btn-primary.ant-btn-lg').click({ timeout: 10000}) //click install
+        cy.wait(7000) //account for slow connection
+        cy.url().should('include', '5bfe0994/ships', { timeout: 10000}) //check for the right landing page
+        cy.url().should('include', 'installed=true', { timeout: 10000}) //check for install complete
    })
 })
 
+//adding configurations to Segment connector
 describe("Configure a Connector - Add", function() {
     it('Go to Settings Page in Connector', function() {
-        //2 ul's with same class, select second one and then find li number 4
+        //2 ul's with same class, select second one (connector tabs) and then find li number 4 (settings)
         cy.get('ul.ant-menu.ant-menu-light.ant-menu-root.ant-menu-horizontal').should('have.length', 2)
           .eq(1).find('>li').eq(3).click({force: true})
-        cy.url().should('include', '/settings', {timeout: 30000})
+        cy.url().should('include', '/settings', {timeout: 10000}) //check for the right page
     })
 
     it('Add User Segments', function() {
-        // cy.get('p').contains('Users are only sent to segment.com').scrollIntoView()
-        //   .should('be.visible')
-        cy.get('input').should('have.length', 10) //need index 5, 6, 7
-          .eq(5).click({force: true}) //user filter, should check for popover opening
-          .type('User Segment', { delay: 100 })
+        cy.get('input').should('have.length', 10) //find all inputs
+          .eq(5).click({force: true}) //index 5 is user filter
+          .type('User Segment', { delay: 100 }) //slow typing
           .should('have.value', 'User Segment') //confirm text shows up
-        cy.get('span').contains('User Segment').first().click({force: true}) //should check for tag appearing
-        cy.scrollTo('50%', '45%')
+        cy.get('span').contains('User Segment').first().click({force: true}) //add User Segment
+        cy.scrollTo('50%', '45%') //scroll for viewing
         cy.get('p').contains('Find it under Settings').click({force: true}) //click out
+        //should check for tag appearing
     })
 
     it('Add User Attributes', function() {
-        // cy.get('p').contains('Users are only sent to segment.com').scrollIntoView()
-        //   .should('be.visible')
-        // cy.get('li')
-          // .eq(38).click({force: true}) //force click location
-        cy.get('input').should('have.length', 10) //need index 5, 6, 7
-          .eq(6).click('top', {force: true}) //user att, should check for popover opening
-          .type('name', { delay: 100 })
+        cy.get('input').should('have.length', 10) //find all inputs, should have 10
+          .eq(6).click('top', {force: true}) //index 6 is user attributes
+          .type('name', { delay: 100 }) //slow typing
           .should('have.value', 'name') //confirm text shows up
-        cy.get('span').contains('name').first().click({force: true}) //should check for tag appearing
-        cy.scrollTo('50%', '45%')
+        cy.get('span').contains('name').first().click({force: true}) //add "name" attribute
+        cy.scrollTo('50%', '45%') //scroll for viewing
         cy.get('p').contains('Find it under Settings').click({force: true}) //click out
+        //should check for tag appearing
     })
 
     it('Save and Wait', function() {
         cy.get('span').contains('Save changes').click({force: true, timeout: 10000})
         cy.get('button').contains('Commit Changes').click({force: true})
-        cy.wait(5000)
+        cy.wait(5000) //time to view and confirm save
+        //should check for Save changes button disappearing
 
-        // cy.reload()
+        // cy.reload() //refresh requires login
     })
 })
 
+// // needed to access the connector again after a refresh/signout
 // describe("Get back to Connector", function() {
 //     it('Sign in Again', function() {
 //             cy.contains('Sign in with Google').click() //assume login has been saved on browser
-//             cy.wait(5000)
-//             cy.url().should('include', '/overview', { timeout: 30000 }) //check url for successful signin
+//             cy.wait(7000)
+//             cy.url().should('include', '/overview', { timeout: 10000 }) //check url for successful signin
 //         })
 //     it('Open Available Orgs Again', function() {
 //         //no hover function, check for popover
@@ -169,7 +142,7 @@ describe("Configure a Connector - Add", function() {
 
 //         //type to search
 //         cy.get('input.ant-select-search__field')
-//           .type('Eric Wang Organization', { delay: 100 }) //delay
+//           .type('Eric Wang Organization', { delay: 100 }) //slow typing
 //           .should('have.value', 'Eric Wang Organization') //confirm text shows up
 //     })
 //     it('Switch Orgs Again', function() {
@@ -181,48 +154,51 @@ describe("Configure a Connector - Add", function() {
 
 //     it("Access Existing Segment Connector", function() {
 //         cy.get('li.ant-menu-item')
-//           .contains('Connectors').click()
-//         cy.url().should('include', '/5bfe0994/connectors')
+//           .contains('Connectors').click() //go to connectors tab
+//         cy.url().should('include', '/5bfe0994/connectors') //check url
 
-//         cy.get('a.cell-link').contains('Segment').click()
-//         cy.url().should('include', '5bfe0994/ships')
+//         cy.get('a.cell-link').contains('Segment').click() //click into existing Segment connector
+//         cy.url().should('include', '5bfe0994/ships') //check url
 //     })
 // })
 
-describe("Configure a Connector - Delete", function() {
+//removing configurations from the Segment connector
+describe("Configure a Connector - Remove", function() {
     it('Go to Settings Page in Connector', function() {
-        //2 ul's with same class, select second one and then find li number 4
+        //2 ul's with same class, select second one (connector tabs) and then find li number 4 (settings)
         cy.get('ul.ant-menu.ant-menu-light.ant-menu-root.ant-menu-horizontal').should('have.length', 2)
           .eq(1).find('>li').eq(3).click({force: true})
-        cy.url().should('include', '/settings', {timeout: 30000})
+        cy.url().should('include', '/settings', {timeout: 10000}) //check for the right page
     })
 
-    it('Delete User Segments', function() {
-        // cy.get('p').contains('Users are only sent to segment.com').scrollIntoView()
-        //   .should('be.visible')
-        cy.get('rect').should('have.length', 4)
-          .eq(0).click({force: true}) //user filter, should check for tag deleting
+    it('Remove User Segments', function() {
+        cy.get('rect').should('have.length', 4) //find all rect, should have 4
+          .eq(0).click({force: true}) //first index is user filter
+          //should check for removing tag
     })
 
-    it('Delete User Attributes', function() {
-        cy.get('rect').should('have.length', 3)
-          .eq(0).click({force: true}) //user att, should check for tag deleting
+    it('Remove User Attributes', function() {
+        cy.get('rect').should('have.length', 3) //find all rect, should have 3
+          .eq(0).click({force: true}) //first index is now user att
+          //should check for removing tag
     })
 
     it('Save and Wait', function() {
         cy.get('span').contains('Save changes').click({force: true, timeout: 10000})
         cy.get('button').contains('Commit Changes').click({force: true})
-        cy.wait(5000)
+        cy.wait(5000) //time to view and confirm save
+        //should check for Save changes button disappearing
 
-        // cy.reload()
+        // cy.reload() //refresh requires login
     })
 })
 
+// // needed to access the connector again after a refresh/signout
 // describe("Get back to Connector", function() {
 //     it('Sign in Again', function() {
 //             cy.contains('Sign in with Google').click() //assume login has been saved on browser
-//             cy.wait(5000)
-//             cy.url().should('include', '/overview', { timeout: 30000 }) //check url for successful signin
+//             cy.wait(7000)
+//             cy.url().should('include', '/overview', { timeout: 10000 }) //check url for successful signin
 //         })
 //     it('Open Available Orgs Again', function() {
 //         //no hover function, check for popover
@@ -236,7 +212,7 @@ describe("Configure a Connector - Delete", function() {
 
 //         //type to search
 //         cy.get('input.ant-select-search__field')
-//           .type('Eric Wang Organization', { delay: 100 }) //delay
+//           .type('Eric Wang Organization', { delay: 100 }) //slow typing
 //           .should('have.value', 'Eric Wang Organization') //confirm text shows up
 //     })
 //     it('Switch Orgs Again', function() {
@@ -248,38 +224,45 @@ describe("Configure a Connector - Delete", function() {
 
 //     it("Access Existing Segment Connector", function() {
 //         cy.get('li.ant-menu-item')
-//           .contains('Connectors').click()
-//         cy.url().should('include', '/5bfe0994/connectors')
+//           .contains('Connectors').click() //go to connectors tab
+//         cy.url().should('include', '/5bfe0994/connectors') //check url
 
-//         cy.get('a.cell-link').contains('Segment').click()
-//         cy.url().should('include', '5bfe0994/ships')
+//         cy.get('a.cell-link').contains('Segment').click() //click into existing Segment connector
+//         cy.url().should('include', '5bfe0994/ships') //check url
 //     })
 // })
 
+//delete the Segment connector
 describe("Remove a Connector", function() {
     // it('Go to Settings Page in Connector', function() {
     //     // cy.get('li.ant-menu-item').contains('Settings', { timeout: 10000 }).click() //sometimes cant find it
+
+    //     // 2 ul's with same class, select second one (connector tabs) and then find li number 4 (settings)
     //     cy.get('ul.ant-menu.ant-menu-light.ant-menu-root.ant-menu-horizontal').should('have.length', 2)
-    //       .eq(1).find('>li').eq(3).click()
-    //     cy.url().should('include', '/settings')
+    //       .eq(1).find('>li').eq(3).click({force:true})
+    //     cy.url().should('include', '/settings', {timeout: 10000}) //check for the right page
 
     //     //give some time to look around
     //     cy.wait(7000)
     // })
 
     it('Delete the Connector', function() {
-        cy.scrollTo('bottom') //how to test?
+        cy.scrollTo('bottom')
         cy.get('span').contains('Delete this connector').click()
         cy.get('.ant-popover-inner-content') //check for popover
 
-        cy.get('.ant-btn.ant-btn-primary.ant-btn-sm').click()
-        cy.url().should('include', '/5bfe0994/connectors')
-        // cy.get('a.cell-link').contains('Segment') //should not contain
+        cy.get('.ant-btn.ant-btn-primary.ant-btn-sm').click() //click delete confirmation
+        cy.url().should('include', '/5bfe0994/connectors') //check for url
+        // cy.get('a.cell-link').contains('Segment') //should not contain, does not work
     })
 })
 
-//add more assertions and tests
-//comment code and add documentation
-//best practices and risks
-    //risk of messing up clicks when one thing doesnt work but the test keeps going
-    //risk of messing up customer org
+//risk of messing up clicks when one thing doesnt work but the test moves on, especially with force clicks
+//risk of messing up customer org
+
+//add more assertions and tests, e.g.:
+// describe('My First Test', function() {
+//   it('Does not do much!', function() {
+//     expect(true).to.equal(true)
+//   })
+// })
