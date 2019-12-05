@@ -92,7 +92,7 @@ describe("Configure a Connector - Add", function() {
     })
 
     it('Add User Segments', function() {
-        cy.get('input').should('have.length', 10) //find all inputs
+        cy.get('input').should('have.length', 10) //find all inputs, should have 10
           .eq(5).click({force: true}) //index 5 is user filter
           .type('User Segment', { delay: 100 }) //slow typing
           .should('have.value', 'User Segment') //confirm text shows up
@@ -253,7 +253,7 @@ describe("Remove a Connector", function() {
 
         cy.get('.ant-btn.ant-btn-primary.ant-btn-sm').click() //click delete confirmation
         cy.url().should('include', '/5bfe0994/connectors') //check for url
-        // cy.get('a.cell-link').contains('Segment') //should not contain, does not work
+        // cy.get('a.cell-link').contains('Segment') //should not contain "Segment", does not work
     })
 })
 
@@ -261,8 +261,5 @@ describe("Remove a Connector", function() {
 //risk of messing up customer org
 
 //add more assertions and tests, e.g.:
-// describe('My First Test', function() {
-//   it('Does not do much!', function() {
-//     expect(true).to.equal(true)
-//   })
-// })
+//     expect(blank).to.equal(blank)
+

@@ -8,9 +8,9 @@ https://docs.cypress.io/guides/getting-started/installing-cypress.html#System-re
 cd /your/path
 npm install cypress --save-dev
 ```
-Put "ui_test_1.js" in **"cypress/integration"**.
+Put "ui_test_1.js" and "ui_test_2.js" in **"cypress/integration"**.
 ### To Run:
 ```
-npx cypress open
+$(npm bin)\\cypress open
 ```
-In the UI, open "ui_test_1.js" to start tests.
+In the UI, open "ui_test_1.js" to start tests on the Segment connector, and "ui_test_2.js" to start tests on the Pipedrive connector.
